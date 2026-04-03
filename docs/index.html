@@ -1,64 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exchange Rates Dashboard</title>
+  <title>汇率表</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
+      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      background: #f8f8f8;
       color: #222;
     }
+
+    .container {
+      max-width: 1400px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
     h1 {
-      margin-bottom: 10px;
+      font-size: 56px;
+      margin: 0 0 28px;
+      font-weight: 700;
     }
+
     .actions {
-      margin: 20px 0;
+      margin-bottom: 28px;
     }
+
     a.button {
       display: inline-block;
-      padding: 10px 16px;
-      background: #111827;
+      padding: 14px 28px;
+      background: #0f172a;
       color: white;
       text-decoration: none;
-      border-radius: 8px;
-      margin-right: 10px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
     }
-    .info {
-      color: #666;
-      margin-bottom: 20px;
+
+    .table-wrap {
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
     }
+
     table {
       border-collapse: collapse;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1400px;
+      background: white;
+      text-align: center;
     }
+
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px 12px;
-      text-align: left;
+      border: 1px solid #d9d9d9;
+      padding: 18px 16px;
+      font-size: 18px;
     }
+
     th {
       background: #f3f4f6;
+      font-size: 20px;
+      font-weight: 700;
     }
+
     tr:nth-child(even) {
       background: #fafafa;
     }
   </style>
 </head>
 <body>
-  <h1>Exchange Rates Dashboard</h1>
-  <div class="info">Data source: exchange_rates.csv</div>
+  <div class="container">
+    <h1>汇率表</h1>
 
-  <div class="actions">
-    <a class="button" href="exchange_rates.csv" download>Download CSV</a>
+    <div class="actions">
+      <a class="button" href="exchange_rates.csv" download>下载 CSV</a>
+    </div>
+
+    <div class="table-wrap">
+      <table id="rates-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-
-  <table id="rates-table">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
 
   <script>
     async function loadCSV() {
@@ -66,7 +93,6 @@
       const text = await response.text();
 
       const rows = text.trim().split('\n').map(row => row.split(','));
-      const header = rows[0];
       const dataRows = rows.slice(1).reverse();
 
       const thead = document.querySelector('#rates-table thead');
@@ -75,8 +101,10 @@
       thead.innerHTML = '';
       tbody.innerHTML = '';
 
+      const chineseHeaders = ['时间', '美元-人民币', '英镑-美元', '欧元-美元'];
+
       const headerRow = document.createElement('tr');
-      header.forEach(col => {
+      chineseHeaders.forEach(col => {
         const th = document.createElement('th');
         th.textContent = col;
         headerRow.appendChild(th);
