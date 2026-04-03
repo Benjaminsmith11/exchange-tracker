@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exchange Rates Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      color: #222;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .actions {
+      margin: 20px 0;
+    }
+    a.button {
+      display: inline-block;
+      padding: 10px 16px;
+      background: #111827;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .info {
+      color: #666;
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1000px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+    }
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <h1>Exchange Rates Dashboard</h1>
+  <div class="info">Data source: exchange_rates.csv</div>
+
+  <div class="actions">
+    <a class="button" href="../exchange_rates.csv" download>Download CSV</a>
+  </div>
+
+  <table id="rates-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function loadCSV() {
+      const response = await fetch('../exchange_rates.csv');
+      const text = await response.text();
+
+      const rows = text.trim().split('\n').map(row => row.split(','));
+      const header = rows[0];
+      const dataRows = rows.slice(1).reverse();
+
+      const thead = document.querySelector('#rates-table thead');
+      const tbody = document.querySelector('#rates-table tbody');
+
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      const headerRow = document.createElement('tr');
+      header.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      dataRows.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(col => {
+          const td = document.createElement('td');
+          td.textContent = col;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    loadCSV();
+  </script>
+</body>
+</html>
