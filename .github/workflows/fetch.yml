@@ -27,12 +27,18 @@ jobs:
       - name: Run script
         run: python exchange.py
 
+      - name: Ensure docs folder exists
+        run: mkdir -p docs
+
+      - name: Copy CSV to docs
+        run: cp exchange_rates.csv docs/exchange_rates.csv
+
       - name: Commit and push CSV
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add exchange_rates.csv
+          git add exchange_rates.csv docs/exchange_rates.csv
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
