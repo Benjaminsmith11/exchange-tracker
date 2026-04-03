@@ -1,6 +1,6 @@
 import requests
 import csv
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 
 FILE = "exchange_rates.csv"
@@ -13,7 +13,8 @@ def get_rate(base, target):
     return data["rates"][target]
 
 def save_rates():
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    beijing_tz = timezone(timedelta(hours=8))
+    timestamp = datetime.now(beijing_tz).strftime("%Y-%m-%d %H:%M")
 
     usd_cny = get_rate("USD", "CNY")
     gbp_usd = get_rate("GBP", "USD")
