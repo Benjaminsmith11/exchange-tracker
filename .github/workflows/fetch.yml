@@ -3,7 +3,7 @@ name: Fetch Exchange Rates
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "5 * * * *"
 
 permissions:
   contents: write
@@ -27,6 +27,8 @@ jobs:
         run: pip install requests
 
       - name: Run script
+        env:
+          OPENEXCHANGERATES_APP_ID: ${{ secrets.OPENEXCHANGERATES_APP_ID }}
         run: python exchange.py
 
       - name: Ensure docs folder exists
@@ -48,6 +50,5 @@ jobs:
           fi
 
           git commit -m "Update exchange rates CSV"
-
           git pull --rebase origin main
           git push origin HEAD:main
