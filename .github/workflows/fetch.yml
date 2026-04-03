@@ -1,0 +1,31 @@
+name: Fetch Exchange Rates
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # 每小时
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run script
+        run: python exchange.py
+
+      - name: Commit CSV
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add exchange_rates.csv
+          git commit -m "update rates" || echo "no changes"
+          git push
