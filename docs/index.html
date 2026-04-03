@@ -13,20 +13,20 @@
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 40px auto;
       padding: 0 20px;
       text-align: center;
     }
 
     h1 {
-      font-size: 56px;
-      margin: 0 0 28px;
+      font-size: 48px;
+      margin: 0 0 24px;
       font-weight: 700;
     }
 
     .actions {
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     a.button {
@@ -49,25 +49,32 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      max-width: 1400px;
+      max-width: 1600px;
       background: white;
       text-align: center;
     }
 
     th, td {
       border: 1px solid #d9d9d9;
-      padding: 18px 16px;
-      font-size: 18px;
+      padding: 16px 14px;
+      font-size: 17px;
+      white-space: nowrap;
     }
 
     th {
       background: #f3f4f6;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
     }
 
     tr:nth-child(even) {
       background: #fafafa;
+    }
+
+    .error {
+      margin-top: 16px;
+      color: #b91c1c;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -85,41 +92,63 @@
         <tbody></tbody>
       </table>
     </div>
+
+    <div id="error" class="error"></div>
   </div>
 
   <script>
     async function loadCSV() {
-      const response = await fetch('exchange_rates.csv');
-      const text = await response.text();
+      try {
+        const response = await fetch('exchange_rates.csv', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('CSV 加载失败');
+        }
 
-      const rows = text.trim().split('\n').map(row => row.split(','));
-      const dataRows = rows.slice(1).reverse();
+        const text = await response.text();
+        const rows = text
+          .trim()
+          .split('\n')
+          .map(row => row.split(','))
+          .filter(row => row.length >= 6);
 
-      const thead = document.querySelector('#rates-table thead');
-      const tbody = document.querySelector('#rates-table tbody');
+        const dataRows = rows.slice(1).reverse();
 
-      thead.innerHTML = '';
-      tbody.innerHTML = '';
+        const thead = document.querySelector('#rates-table thead');
+        const tbody = document.querySelector('#rates-table tbody');
 
-      const chineseHeaders = ['时间', '美元-人民币', '英镑-美元', '欧元-美元'];
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
 
-      const headerRow = document.createElement('tr');
-      chineseHeaders.forEach(col => {
-        const th = document.createElement('th');
-        th.textContent = col;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
+        const chineseHeaders = [
+          '时间',
+          '美元-人民币',
+          '英镑-美元（市场）',
+          '欧元-美元（市场）',
+          '英镑-美元（PayPal估）',
+          '欧元-美元（PayPal估）'
+        ];
 
-      dataRows.forEach(row => {
-        const tr = document.createElement('tr');
-        row.forEach(col => {
-          const td = document.createElement('td');
-          td.textContent = col;
-          tr.appendChild(td);
+        const headerRow = document.createElement('tr');
+        chineseHeaders.forEach(col => {
+          const th = document.createElement('th');
+          th.textContent = col;
+          headerRow.appendChild(th);
         });
-        tbody.appendChild(tr);
-      });
+        thead.appendChild(headerRow);
+
+        dataRows.forEach(row => {
+          const tr = document.createElement('tr');
+          row.slice(0, 6).forEach(col => {
+            const td = document.createElement('td');
+            td.textContent = col;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        document.getElementById('error').textContent = '页面加载失败，请稍后刷新重试。';
+        console.error(err);
+      }
     }
 
     loadCSV();
