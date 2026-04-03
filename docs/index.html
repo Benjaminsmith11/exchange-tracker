@@ -52,7 +52,7 @@
   <div class="info">Data source: exchange_rates.csv</div>
 
   <div class="actions">
-    <a class="button" href="../exchange_rates.csv" download>Download CSV</a>
+    <a class="button" href="/exchange-tracker/exchange_rates.csv" download>Download CSV</a>
   </div>
 
   <table id="rates-table">
@@ -62,7 +62,7 @@
 
   <script>
     async function loadCSV() {
-      const response = await fetch('../exchange_rates.csv');
+      const response = await fetch('/exchange-tracker/exchange_rates.csv');
       const text = await response.text();
 
       const rows = text.trim().split('\n').map(row => row.split(','));
