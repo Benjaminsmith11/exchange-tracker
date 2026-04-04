@@ -1,6 +1,5 @@
 import os
 import csv
-import time
 import requests
 from datetime import datetime, timezone, timedelta
 
@@ -26,43 +25,31 @@ def get_beijing_hour_label() -> str:
     return now.strftime("%Y-%m-%d %H:%M")
 
 
-def get_api_key() -> str:
-    api_key = os.getenv("ALPHAVANTAGE_API_KEY")
-    if not api_key:
+def get_app_id() -> str:
+    app_id = os.getenv("OPENEXCHANGERATES_APP_ID")
+    if not app_id:
         raise RuntimeError(
-            "Missing ALPHAVANTAGE_API_KEY. Add it in GitHub repo Settings → Secrets and variables → Actions."
+            "Missing OPENEXCHANGERATES_APP_ID. Add it in GitHub repo Settings → Secrets and variables → Actions."
         )
-    return api_key
+    return app_id
 
 
-def fetch_alpha_rate(from_currency: str, to_currency: str) -> float:
-    api_key = get_api_key()
-    url = "https://www.alphavantage.co/query"
+def get_openexchangerates_data() -> dict:
+    app_id = get_app_id()
+    url = "https://openexchangerates.org/api/latest.json"
     params = {
-        "function": "CURRENCY_EXCHANGE_RATE",
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "apikey": api_key,
+        "app_id": app_id,
+        "symbols": "CNY,GBP,EUR",
     }
 
-    response = requests.get(url, params=params, timeout=30)
+    response = requests.get(url, params=params, timeout=20)
     response.raise_for_status()
     data = response.json()
 
-    # Success payload
-    if "Realtime Currency Exchange Rate" in data:
-        rate_str = data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
-        return float(rate_str)
+    if "rates" not in data:
+        raise RuntimeError(f"Unexpected API response: {data}")
 
-    # API note / limit / error
-    if "Note" in data:
-        raise RuntimeError(f"Alpha Vantage limit or note: {data['Note']}")
-    if "Information" in data:
-        raise RuntimeError(f"Alpha Vantage info: {data['Information']}")
-    if "Error Message" in data:
-        raise RuntimeError(f"Alpha Vantage error: {data['Error Message']}")
-
-    raise RuntimeError(f"Unexpected Alpha Vantage response: {data}")
+    return data
 
 
 def estimate_paypal_rate_from_market(market_rate: float, spread: float) -> float:
@@ -84,16 +71,16 @@ def get_file_mode() -> str:
 
 
 def save_rates():
-    timestamp = get_beijing_hour_label()
+    data = get_openexchangerates_data()
+    rates = data["rates"]
 
-    # Add small pauses to reduce chance of hitting short-window limits
-    usd_cny_market = fetch_alpha_rate("USD", "CNY")
-    time.sleep(15)
+    # Open Exchange Rates free plan is USD-based
+    usd_cny_market = float(rates["CNY"])
+    usd_gbp_market = float(rates["GBP"])
+    usd_eur_market = float(rates["EUR"])
 
-    gbp_usd_market = fetch_alpha_rate("GBP", "USD")
-    time.sleep(15)
-
-    eur_usd_market = fetch_alpha_rate("EUR", "USD")
+    gbp_usd_market = 1 / usd_gbp_market
+    eur_usd_market = 1 / usd_eur_market
 
     gbp_usd_paypal_est = estimate_paypal_rate_from_market(
         gbp_usd_market, PAYPAL_CN_OTHER_CONVERSION_SPREAD
@@ -103,7 +90,7 @@ def save_rates():
     )
 
     row = [
-        timestamp,
+        get_beijing_hour_label(),
         f"{usd_cny_market:.6f}",
         f"{gbp_usd_market:.6f}",
         f"{eur_usd_market:.6f}",
